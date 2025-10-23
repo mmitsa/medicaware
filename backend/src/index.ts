@@ -8,6 +8,9 @@ import morgan from 'morgan';
 // Import routes
 import authRoutes from './api/routes/auth.routes';
 import userRoutes from './api/routes/user.routes';
+import warehouseRoutes from './api/routes/warehouse.routes';
+import productRoutes from './api/routes/product.routes';
+import batchRoutes from './api/routes/batch.routes';
 
 // Load environment variables
 dotenv.config();
@@ -68,6 +71,9 @@ app.get('/api/v1', (req, res) => {
 // Mount routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/warehouses', warehouseRoutes);
+app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/batches', batchRoutes);
 
 // 404 handler
 app.use((req, res) => {

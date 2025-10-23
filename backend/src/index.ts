@@ -5,6 +5,9 @@ import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import morgan from 'morgan';
 
+// Import routes
+import authRoutes from './api/routes/auth.routes';
+
 // Load environment variables
 dotenv.config();
 
@@ -60,6 +63,9 @@ app.get('/api/v1', (req, res) => {
     }
   });
 });
+
+// Mount routes
+app.use('/api/v1/auth', authRoutes);
 
 // 404 handler
 app.use((req, res) => {

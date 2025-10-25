@@ -18,6 +18,8 @@ import purchaseOrderRoutes from './api/routes/purchase-order.routes';
 import stockCountRoutes from './api/routes/stock-count.routes';
 import notificationRoutes from './api/routes/notification.routes';
 import reportRoutes from './api/routes/report.routes';
+import supplierRoutes from './api/routes/supplier.routes';
+import categoryRoutes from './api/routes/category.routes';
 
 // Load environment variables
 dotenv.config();
@@ -69,6 +71,8 @@ app.get('/api/v1', (req, res) => {
       'stock-counts': '/api/v1/stock-counts',
       notifications: '/api/v1/notifications',
       reports: '/api/v1/reports',
+      suppliers: '/api/v1/suppliers',
+      categories: '/api/v1/categories',
       financial: '/api/v1/financial',
       hr: '/api/v1/hr',
     }
@@ -88,6 +92,8 @@ app.use('/api/v1/purchase-orders', purchaseOrderRoutes);
 app.use('/api/v1/stock-counts', stockCountRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/reports', reportRoutes);
+app.use('/api/v1/suppliers', supplierRoutes);
+app.use('/api/v1/categories', categoryRoutes);
 
 // 404 handler
 app.use((req, res) => {

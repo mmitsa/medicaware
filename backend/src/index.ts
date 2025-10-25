@@ -15,6 +15,8 @@ import stockRoutes from './api/routes/stock.routes';
 import stockMovementRoutes from './api/routes/stock-movement.routes';
 import transferOrderRoutes from './api/routes/transfer-order.routes';
 import purchaseOrderRoutes from './api/routes/purchase-order.routes';
+import stockCountRoutes from './api/routes/stock-count.routes';
+import notificationRoutes from './api/routes/notification.routes';
 
 // Load environment variables
 dotenv.config();
@@ -82,6 +84,8 @@ app.use('/api/v1/stocks', stockRoutes);
 app.use('/api/v1/stock-movements', stockMovementRoutes);
 app.use('/api/v1/transfer-orders', transferOrderRoutes);
 app.use('/api/v1/purchase-orders', purchaseOrderRoutes);
+app.use('/api/v1/stock-counts', stockCountRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // 404 handler
 app.use((req, res) => {

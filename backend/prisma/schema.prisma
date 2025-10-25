@@ -1,0 +1,824 @@
+// Medical Warehouse Management System - Database Schema
+// نظام إدارة المستودعات التموينية الطبية - مخطط قاعدة البيانات
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== User Management ====================
+
+enum UserRole {
+  SUPER_ADMIN      // مدير النظام الكامل
+  ADMIN            // مدير
+  WAREHOUSE_MANAGER // مدير مستودع
+  PHARMACIST       // صيدلي
+  INVENTORY_CLERK  // موظف مخزون
+  AUDITOR          // مدقق
+  VIEWER           // عارض فقط
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  username      String      @unique
+  password      String
+  firstName     String
+  lastName      String
+  phone         String?
+  role          UserRole
+  status        UserStatus  @default(ACTIVE)
+
+  // HR Integration
+  employeeId    String?     @unique
+  department    String?
+  position      String?
+  hireDate      DateTime?
+
+  // Permissions
+  permissions   Json?       // Custom permissions
+
+  // Warehouse Assignment
+  warehouseId   String?
+  warehouse     Warehouse?  @relation(fields: [warehouseId], references: [id])
+
+  // Sessions & Security
+  lastLoginAt   DateTime?
+  refreshToken  String?
+  resetToken    String?
+  resetTokenExp DateTime?
+
+  // Audit
+  createdBy     String?
+  updatedBy     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?
+
+  // Relations
+  stockMovements      StockMovement[]
+  transferOrders      TransferOrder[]     @relation("CreatedBy")
+  purchaseOrders      PurchaseOrder[]
+  stockCounts         StockCount[]
+  auditLogs           AuditLog[]
+  notifications       Notification[]
+  attendanceRecords   AttendanceRecord[]
+
+  @@index([email])
+  @@index([username])
+  @@index([role])
+  @@index([warehouseId])
+  @@map("users")
+}
+
+// ==================== Warehouse Management ====================
+
+enum WarehouseType {
+  MAIN        // المستودع الرئيسي
+  BRANCH      // فرع
+  PHARMACY    // صيدلية
+  CLINIC      // عيادة
+}
+
+model Warehouse {
+  id          String        @id @default(uuid())
+  code        String        @unique
+  name        String
+  nameAr      String?
+  type        WarehouseType
+  description String?
+
+  // Location
+  address     String?
+  city        String?
+  region      String?
+  country     String?       @default("Saudi Arabia")
+  postalCode  String?
+
+  // Contact
+  phone       String?
+  email       String?
+  manager     String?
+
+  // Settings
+  isActive    Boolean       @default(true)
+  capacity    Float?
+
+  // Audit
+  createdBy   String?
+  updatedBy   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  zones             Zone[]
+  users             User[]
+  stocks            Stock[]
+  transferOrdersFrom TransferOrder[]   @relation("FromWarehouse")
+  transferOrdersTo   TransferOrder[]   @relation("ToWarehouse")
+  stockMovements    StockMovement[]
+  stockCounts       StockCount[]
+
+  @@index([code])
+  @@index([type])
+  @@map("warehouses")
+}
+
+model Zone {
+  id          String     @id @default(uuid())
+  code        String
+  name        String
+  nameAr      String?
+  description String?
+
+  warehouseId String
+  warehouse   Warehouse  @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  isActive    Boolean    @default(true)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  shelves     Shelf[]
+  stocks      Stock[]
+
+  @@unique([warehouseId, code])
+  @@index([warehouseId])
+  @@map("zones")
+}
+
+model Shelf {
+  id          String     @id @default(uuid())
+  code        String
+  name        String
+  nameAr      String?
+  description String?
+
+  zoneId      String
+  zone        Zone       @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  capacity    Float?
+  isActive    Boolean    @default(true)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  stocks      Stock[]
+
+  @@unique([zoneId, code])
+  @@index([zoneId])
+  @@map("shelves")
+}
+
+// ==================== Product Management ====================
+
+enum ProductCategory {
+  MEDICATION      // أدوية
+  MEDICAL_SUPPLY  // مستلزمات طبية
+  EQUIPMENT       // معدات
+  CONSUMABLE      // مواد استهلاكية
+  OTHER           // أخرى
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DISCONTINUED
+}
+
+enum UnitOfMeasure {
+  PIECE    // قطعة
+  BOX      // علبة
+  PACK     // عبوة
+  BOTTLE   // زجاجة
+  VIAL     // قارورة
+  AMPOULE  // أمبول
+  TUBE     // أنبوب
+  KG       // كيلوجرام
+  LITER    // لتر
+  ML       // ملليلتر
+}
+
+model Product {
+  id              String          @id @default(uuid())
+  code            String          @unique
+  barcode         String?         @unique
+  name            String
+  nameAr          String?
+  scientificName  String?
+  category        ProductCategory
+  status          ProductStatus   @default(ACTIVE)
+
+  // Product Details
+  description     String?
+  manufacturer    String?
+  supplier        String?
+
+  // Inventory Settings
+  unitOfMeasure   UnitOfMeasure
+  minStockLevel   Float           @default(0)
+  maxStockLevel   Float?
+  reorderPoint    Float?
+  reorderQuantity Float?
+
+  // Pricing
+  unitPrice       Decimal         @default(0) 
+  lastPurchasePrice Decimal?      
+
+  // Medical Specific
+  requiresPrescription Boolean     @default(false)
+  isDangerous     Boolean         @default(false)
+  storageConditions String?
+
+  // Barcode
+  qrCode          String?
+
+  // Images
+  imageUrl        String?
+
+  // Audit
+  createdBy       String?
+  updatedBy       String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  batches         Batch[]
+  stocks          Stock[]
+  stockMovements  StockMovement[]
+
+  @@index([code])
+  @@index([barcode])
+  @@index([category])
+  @@index([status])
+  @@map("products")
+}
+
+// ==================== Batch & Expiry Management ====================
+
+model Batch {
+  id              String    @id @default(uuid())
+  batchNumber     String    @unique
+
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id])
+
+  // Dates
+  manufacturingDate DateTime?
+  expiryDate      DateTime
+  receivedDate    DateTime  @default(now())
+
+  // Quantities
+  initialQuantity Float
+  currentQuantity Float
+
+  // Pricing
+  costPrice       Decimal?  
+
+  // Status
+  isExpired       Boolean   @default(false)
+  isRecalled      Boolean   @default(false)
+  recallReason    String?
+
+  // Audit
+  createdBy       String?
+  updatedBy       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  stocks          Stock[]
+  stockMovements  StockMovement[]
+
+  @@index([productId])
+  @@index([expiryDate])
+  @@index([batchNumber])
+  @@map("batches")
+}
+
+// ==================== Stock Management ====================
+
+model Stock {
+  id          String    @id @default(uuid())
+
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+
+  batchId     String?
+  batch       Batch?    @relation(fields: [batchId], references: [id])
+
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+
+  zoneId      String?
+  zone        Zone?     @relation(fields: [zoneId], references: [id])
+
+  shelfId     String?
+  shelf       Shelf?    @relation(fields: [shelfId], references: [id])
+
+  // Quantities
+  quantity    Float     @default(0)
+  reservedQty Float     @default(0)  // للطلبات المحجوزة
+  availableQty Float    @default(0)  // الكمية المتاحة = quantity - reservedQty
+
+  // Audit
+  lastCountDate DateTime?
+  lastMovementDate DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([productId, batchId, warehouseId, zoneId, shelfId])
+  @@index([productId])
+  @@index([warehouseId])
+  @@index([batchId])
+  @@map("stocks")
+}
+
+// ==================== Stock Movement ====================
+
+enum MovementType {
+  RECEIPT          // استلام
+  ISSUE            // صرف
+  TRANSFER_IN      // تحويل وارد
+  TRANSFER_OUT     // تحويل صادر
+  ADJUSTMENT       // تسوية
+  RETURN           // إرجاع
+  EXPIRED          // منتهي الصلاحية
+  DAMAGED          // تالف
+  LOST             // فقدان
+  FOUND            // إيجاد
+  STOCK_COUNT      // جرد
+}
+
+model StockMovement {
+  id              String        @id @default(uuid())
+  movementNumber  String        @unique
+  type            MovementType
+
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+
+  batchId         String?
+  batch           Batch?        @relation(fields: [batchId], references: [id])
+
+  warehouseId     String
+  warehouse       Warehouse     @relation(fields: [warehouseId], references: [id])
+
+  // Quantities
+  quantity        Float
+  unitPrice       Decimal?      
+  totalValue      Decimal?      
+
+  // References
+  referenceType   String?       // PO, TO, SC, etc.
+  referenceId     String?
+
+  // Notes
+  notes           String?
+  reason          String?
+
+  // User
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+
+  // Date
+  movementDate    DateTime      @default(now())
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([productId])
+  @@index([warehouseId])
+  @@index([type])
+  @@index([movementDate])
+  @@map("stock_movements")
+}
+
+// ==================== Transfer Orders ====================
+
+enum TransferStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  IN_TRANSIT
+  RECEIVED
+  CANCELLED
+  REJECTED
+}
+
+model TransferOrder {
+  id              String          @id @default(uuid())
+  orderNumber     String          @unique
+  status          TransferStatus  @default(DRAFT)
+
+  fromWarehouseId String
+  fromWarehouse   Warehouse       @relation("FromWarehouse", fields: [fromWarehouseId], references: [id])
+
+  toWarehouseId   String
+  toWarehouse     Warehouse       @relation("ToWarehouse", fields: [toWarehouseId], references: [id])
+
+  // Dates
+  requestDate     DateTime        @default(now())
+  approvedDate    DateTime?
+  shippedDate     DateTime?
+  receivedDate    DateTime?
+
+  // Notes
+  notes           String?
+  rejectionReason String?
+
+  // User
+  createdById     String
+  createdBy       User            @relation("CreatedBy", fields: [createdById], references: [id])
+  approvedBy      String?
+
+  // Audit
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  items           TransferOrderItem[]
+
+  @@index([orderNumber])
+  @@index([status])
+  @@index([fromWarehouseId])
+  @@index([toWarehouseId])
+  @@map("transfer_orders")
+}
+
+model TransferOrderItem {
+  id              String        @id @default(uuid())
+
+  transferOrderId String
+  transferOrder   TransferOrder @relation(fields: [transferOrderId], references: [id], onDelete: Cascade)
+
+  productId       String
+  batchId         String?
+
+  requestedQty    Float
+  approvedQty     Float?
+  receivedQty     Float?
+
+  notes           String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([transferOrderId])
+  @@map("transfer_order_items")
+}
+
+// ==================== Purchase Orders ====================
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  ORDERED
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id              String              @id @default(uuid())
+  orderNumber     String              @unique
+  status          PurchaseOrderStatus @default(DRAFT)
+
+  supplier        String
+  warehouseId     String
+
+  // Dates
+  orderDate       DateTime            @default(now())
+  expectedDate    DateTime?
+  receivedDate    DateTime?
+
+  // Financial
+  totalAmount     Decimal             @default(0) 
+  taxAmount       Decimal             @default(0) 
+  grandTotal      Decimal             @default(0) 
+
+  // Notes
+  notes           String?
+
+  // User
+  createdById     String
+  createdBy       User                @relation(fields: [createdById], references: [id])
+  approvedBy      String?
+
+  // Audit
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  items           PurchaseOrderItem[]
+
+  @@index([orderNumber])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(uuid())
+
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  productId       String
+
+  orderedQty      Float
+  receivedQty     Float         @default(0)
+
+  unitPrice       Decimal       
+  totalPrice      Decimal       
+
+  notes           String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([purchaseOrderId])
+  @@map("purchase_order_items")
+}
+
+// ==================== Stock Count (Inventory) ====================
+
+enum StockCountStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  APPROVED
+  CANCELLED
+}
+
+model StockCount {
+  id              String           @id @default(uuid())
+  countNumber     String           @unique
+  status          StockCountStatus @default(PLANNED)
+
+  warehouseId     String
+  warehouse       Warehouse        @relation(fields: [warehouseId], references: [id])
+
+  // Dates
+  scheduledDate   DateTime
+  startDate       DateTime?
+  endDate         DateTime?
+
+  // Notes
+  notes           String?
+
+  // User
+  createdById     String
+  createdBy       User             @relation(fields: [createdById], references: [id])
+  approvedBy      String?
+
+  // Audit
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  items           StockCountItem[]
+
+  @@index([countNumber])
+  @@index([status])
+  @@index([warehouseId])
+  @@map("stock_counts")
+}
+
+model StockCountItem {
+  id              String      @id @default(uuid())
+
+  stockCountId    String
+  stockCount      StockCount  @relation(fields: [stockCountId], references: [id], onDelete: Cascade)
+
+  productId       String
+  batchId         String?
+
+  systemQty       Float       // الكمية في النظام
+  countedQty      Float?      // الكمية المعدودة
+  variance        Float?      // الفرق
+
+  notes           String?
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([stockCountId])
+  @@map("stock_count_items")
+}
+
+// ==================== Notifications ====================
+
+enum NotificationType {
+  EXPIRY_WARNING       // تحذير صلاحية
+  LOW_STOCK            // مخزون منخفض
+  OUT_OF_STOCK         // نفاد المخزون
+  TRANSFER_APPROVED    // موافقة نقل
+  TRANSFER_RECEIVED    // استلام نقل
+  STOCK_COUNT_DUE      // موعد جرد
+  SYSTEM_ALERT         // تنبيه النظام
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+model Notification {
+  id          String             @id @default(uuid())
+  type        NotificationType
+  status      NotificationStatus @default(UNREAD)
+
+  userId      String
+  user        User               @relation(fields: [userId], references: [id])
+
+  title       String
+  titleAr     String?
+  message     String
+  messageAr   String?
+
+  // Reference
+  referenceType String?
+  referenceId   String?
+
+  // Metadata
+  metadata    Json?
+
+  // Dates
+  readAt      DateTime?
+  expiresAt   DateTime?
+
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@map("notifications")
+}
+
+// ==================== Audit Logs ====================
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  APPROVE
+  REJECT
+  EXPORT
+  IMPORT
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  action      AuditAction
+
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+
+  entityType  String      // Product, Stock, etc.
+  entityId    String?
+
+  oldValues   Json?
+  newValues   Json?
+
+  ipAddress   String?
+  userAgent   String?
+
+  createdAt   DateTime    @default(now())
+
+  @@index([userId])
+  @@index([entityType])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ==================== Financial Records ====================
+
+enum TransactionType {
+  PURCHASE
+  SALE
+  RETURN
+  ADJUSTMENT
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIAL
+  CANCELLED
+}
+
+model FinancialTransaction {
+  id              String          @id @default(uuid())
+  transactionNumber String        @unique
+  type            TransactionType
+
+  // Amounts
+  amount          Decimal         
+  taxAmount       Decimal         @default(0) 
+  totalAmount     Decimal         
+
+  // Payment
+  paymentStatus   PaymentStatus   @default(PENDING)
+  paymentDate     DateTime?
+  paymentMethod   String?
+
+  // Reference
+  referenceType   String?
+  referenceId     String?
+
+  // Invoice
+  invoiceNumber   String?
+  invoiceDate     DateTime?
+
+  // Notes
+  notes           String?
+
+  // Audit
+  createdBy       String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([transactionNumber])
+  @@index([type])
+  @@index([paymentStatus])
+  @@map("financial_transactions")
+}
+
+// ==================== HR Integration ====================
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  LEAVE
+  SICK
+}
+
+model AttendanceRecord {
+  id          String           @id @default(uuid())
+
+  userId      String
+  user        User             @relation(fields: [userId], references: [id])
+
+  date        DateTime         @db.Date
+  status      AttendanceStatus
+
+  checkIn     DateTime?
+  checkOut    DateTime?
+
+  workHours   Float?
+  overtimeHours Float?
+
+  notes       String?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+  @@map("attendance_records")
+}
+
+// ==================== Settings ====================
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  category    String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+  @@index([category])
+  @@map("system_settings")
+}

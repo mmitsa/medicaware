@@ -1,58 +1,286 @@
-## Get Started
+# نظام إدارة المستودعات التموينية الطبية
+# Medical Warehouse Management System
 
-This guide describes how to use DigitalOcean App Platform to run a Dockerised Asp .Net application.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node](https://img.shields.io/badge/node-18.x-green.svg)
+![TypeScript](https://img.shields.io/badge/typescript-5.x-blue.svg)
+![React](https://img.shields.io/badge/react-18.x-blue.svg)
 
-**Note**: Following these steps may result in charges for the use of DigitalOcean services.
+## نظرة عامة | Overview
 
-### Requirements
+نظام رقمي متكامل لإدارة جميع العمليات المتعلقة بالمخزون الطبي داخل المستودع الرئيسي والفروع.
 
-* You need a DigitalOcean account. If you do not already have one, first [sign up](https://cloud.digitalocean.com/registrations/new).
+A comprehensive digital system for managing all operations related to medical inventory in the main warehouse and branches.
 
-## Deploy the App
+## المميزات الرئيسية | Key Features
 
-Click the following button to deploy the app to App Platform. If you are not currently logged in with your DigitalOcean account, this button prompts you to to log in.
+### 1. إدارة المخزون | Inventory Management
+- تسجيل ومتابعة كميات الأدوية والمستلزمات الطبية
+- تحديث مستمر لحالة المخزون
+- دعم الباركود و QR Code
+- إدارة المواقع (مستودعات، مناطق، أرفف)
 
-[![Deploy to DigitalOcean](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/digitalocean/sample-aspnet/tree/main)
+### 2. المتابعة الزمنية | Expiry Tracking
+- مراقبة صلاحية المنتجات الطبية
+- تنبيهات تلقائية قبل انتهاء الصلاحية
+- إدارة الدفعات (Batches)
 
-Note that, for the purposes of this tutorial, this button deploys the app directly from DigitalOcean's GitHub repository, which disables automatic redeployment since you cannot change our template. If you want automatic redeployment or you want to change the sample app's code to your own, we instead recommend you fork [our repository](https://github.com/digitalocean/sample-aspnet/tree/main).
+### 3. توزيع الإمدادات | Distribution Management
+- تنظيم عمليات التوزيع بين المستودعات
+- توثيق كامل للحركات المخزنية
+- تتبع طلبات النقل
 
-To fork our repository, click the **Fork** button in the top-right of [its page on GitHub](https://github.com/digitalocean/sample-aspnet/tree/main), then follow the on-screen instructions. To learn more about forking repos, see the [GitHub documentation](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo).
+### 4. الجرد والمراجعة | Stock Count & Audit
+- جرد دوري منظم
+- تسوية المخزون
+- سجلات تدقيق شاملة
 
-After forking the repo, you can view the same README in your own GitHub org; for example, in `https://github.com/<your-org>/sample-aspnet`. To deploy the new repo, visit the [control panel](https://cloud.digitalocean.com/apps) and click the **Create App** button. This takes you to the app creation page. Under **Service Provider**, select **GitHub**. Then, under **Repository**, select your newly-forked repo. Ensure that your branch is set to **main** and **Autodeploy** is checked on. Finally, click **Next**.
+### 5. التقارير والتحليلات | Reports & Analytics
+- تقارير شاملة عن الأداء
+- تحديد الفائض والعجز
+- لوحات معلومات تفاعلية
+- دعم اتخاذ القرار الإداري
 
-After clicking the **Deploy to DigitalOcean** button or completing the instructions above to fork the repo, follow these steps:
+### 6. التكامل | Integration
+- النظام الطبي
+- منصة نوبكو (NUPCO)
+- منصة اعتماد (Etimad)
+- نظام ERP
+- نظام رصد (Rasid)
 
-1. Configure the app, such as by specifying HTTP routes, declaring environment variables, or adding a database. For the purposes of this tutorial, this step is optional.
-1. Provide a name for your app and select the region to deploy your app to, then click **Next**. By default, App Platform selects the region closest to you. Unless your app needs to interface with external services, your chosen region does not affect the app's performance, since to all App Platform apps are routed through a global CDN.
-1. On the following screen, leave all the fields as they are and click **Next**.
-1. Confirm your plan settings and how many containers you want to launch and click **Launch Basic/Pro App**.
+### 7. الإدارة المالية | Financial Management
+- الفواتير والمدفوعات
+- التقارير المالية والضريبية
+- متابعة التحصيل
 
-After, you should see a "Building..." progress indicator. You can click **View Logs** to see more details of the build. It can take a few minutes for the build to finish, but you can follow the progress in the **Deployments** tab.
+### 8. الموارد البشرية | HR Integration
+- الحضور والانصراف
+- إدارة العقود والرواتب
+- الإجازات والترقيات
 
-Once the build completes successfully, click the **Live App** link in the header and you should see your running application in a new tab, displaying the home page.
+## التقنيات المستخدمة | Tech Stack
 
+### Backend
+- **Runtime:** Node.js 18+
+- **Framework:** Express.js
+- **Language:** TypeScript
+- **Database:** PostgreSQL 15+
+- **ORM:** Prisma
+- **Authentication:** JWT + bcrypt
+- **API Documentation:** Swagger/OpenAPI
 
-## Make Changes to Your App
+### Frontend
+- **Framework:** React 18+
+- **Language:** TypeScript
+- **Build Tool:** Vite
+- **UI Library:** Material-UI (MUI)
+- **State Management:** Redux Toolkit
+- **HTTP Client:** Axios
+- **Charts:** Recharts
 
-If you forked our repo, you can now make changes to your copy of the sample app. Pushing a new change to the forked repo automatically redeploys the app to App Platform with zero downtime.
+### DevOps
+- **Containerization:** Docker + Docker Compose
+- **Database UI:** pgAdmin
+- **Caching:** Redis
 
-Here's an example code change you can make for this app:
+## البدء السريع | Quick Start
 
-1. Edit `main.go` and replace the "Hello!" greeting on line 31 with a different greeting
-1. Commit the change to the `main` branch. Normally it's a better practice to create a new branch for your change and then merge that branch to `main` after review, but for this demo you can commit to the `main` branch directly.
-1. Visit the [control panel](https://cloud.digitalocean.com/apps) and navigate to your sample app.
-1. You should see a "Building..." progress indicator, just like when you first created the app.
-1. Once the build completes successfully, click the **Live App** link in the header and you should see your updated application running. You may need to force refresh the page in your browser (e.g. using **Shift** + **Reload**).
+### المتطلبات الأساسية | Prerequisites
 
-## Learn More
+- Node.js 18 or higher
+- npm 9 or higher
+- Docker & Docker Compose (optional)
 
-To learn more about App Platform and how to manage and update your application, see [our App Platform documentation](https://www.digitalocean.com/docs/app-platform/).
+### التثبيت | Installation
 
-## Delete the App
+#### 1. استنساخ المشروع | Clone the repository
 
-When you no longer need this sample application running live, you can delete it by following these steps:
-1. Visit the [Apps control panel](https://cloud.digitalocean.com/apps).
-2. Navigate to the sample app.
-3. In the **Settings** tab, click **Destroy**.
+```bash
+git clone <repository-url>
+cd medical-warehouse-system
+```
 
-**Note**: If you do not delete your app, charges for using DigitalOcean services will continue to accrue.
+#### 2. باستخدام Docker (موصى به) | Using Docker (Recommended)
+
+```bash
+# تشغيل جميع الخدمات
+docker-compose up -d
+
+# عرض السجلات
+docker-compose logs -f
+
+# إيقاف الخدمات
+docker-compose down
+```
+
+#### 3. بدون Docker | Without Docker
+
+**Backend:**
+```bash
+cd backend
+cp .env.example .env
+# قم بتحديث ملف .env بالقيم المناسبة
+npm install
+npx prisma migrate dev
+npx prisma generate
+npm run seed
+npm run dev
+```
+
+**Frontend:**
+```bash
+cd frontend
+cp .env.example .env
+# قم بتحديث ملف .env بالقيم المناسبة
+npm install
+npm run dev
+```
+
+### الوصول للتطبيق | Access
+
+- **Frontend:** http://localhost:5173
+- **Backend API:** http://localhost:3000
+- **API Documentation:** http://localhost:3000/api-docs
+- **pgAdmin:** http://localhost:5050
+  - Email: admin@medical-warehouse.com
+  - Password: admin123
+
+## الهيكل | Project Structure
+
+```
+medical-warehouse-system/
+├── backend/               # Backend API
+├── frontend/              # Frontend Web App
+├── shared/                # Shared Types
+├── docs/                  # Documentation
+├── infrastructure/        # Infrastructure as Code
+├── scripts/               # Utility Scripts
+└── docker-compose.yml     # Docker Compose Configuration
+```
+
+للمزيد من التفاصيل، راجع [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)
+
+## التطوير | Development
+
+### الأوامر المتاحة | Available Scripts
+
+**Backend:**
+```bash
+npm run dev          # تشغيل وضع التطوير
+npm run build        # بناء المشروع
+npm run start        # تشغيل النسخة الإنتاجية
+npm run test         # تشغيل الاختبارات
+npm run lint         # فحص الكود
+npm run format       # تنسيق الكود
+```
+
+**Frontend:**
+```bash
+npm run dev          # تشغيل وضع التطوير
+npm run build        # بناء المشروع
+npm run preview      # معاينة النسخة الإنتاجية
+npm run test         # تشغيل الاختبارات
+npm run lint         # فحص الكود
+```
+
+### قواعد الكود | Code Style
+
+- ESLint + Prettier للتنسيق
+- Conventional Commits للرسائل
+- الحد الأدنى لتغطية الاختبارات: 80%
+
+## قاعدة البيانات | Database
+
+### المخططات الرئيسية | Main Schemas
+
+راجع [DATABASE_SCHEMA.md](./docs/technical/DATABASE_SCHEMA.md) للتفاصيل الكاملة.
+
+### الهجرة | Migrations
+
+```bash
+# إنشاء هجرة جديدة
+npx prisma migrate dev --name migration_name
+
+# تطبيق الهجرات
+npx prisma migrate deploy
+
+# إعادة تعيين قاعدة البيانات
+npx prisma migrate reset
+
+# فتح Prisma Studio
+npx prisma studio
+```
+
+## الاختبار | Testing
+
+```bash
+# تشغيل جميع الاختبارات
+npm test
+
+# تشغيل الاختبارات مع المراقبة
+npm run test:watch
+
+# تقرير التغطية
+npm run test:coverage
+```
+
+## النشر | Deployment
+
+راجع [DEPLOYMENT.md](./docs/deployment/DEPLOYMENT.md) لتعليمات النشر التفصيلية.
+
+## التوثيق | Documentation
+
+- [دليل المستخدم | User Guide](./docs/user-guides/)
+- [التوثيق الفني | Technical Documentation](./docs/technical/)
+- [توثيق API | API Documentation](./docs/api/)
+- [دليل النشر | Deployment Guide](./docs/deployment/)
+
+## الدعم والتدريب | Support & Training
+
+### التدريب | Training
+- دليل استخدام مكتوب ومرئي
+- دورات تدريبية مسجلة
+- تدريب المستخدمين النهائيين
+- تدريب مديري النظام
+
+### الدعم الفني | Technical Support
+- دعم فني 24/7
+- متخصصون بالموقع
+- استجابة خلال 30 دقيقة كحد أقصى
+
+## الأمان | Security
+
+- HTTPS only
+- JWT مع Refresh Tokens
+- التحكم في الصلاحيات (RBAC)
+- التحقق من المدخلات
+- حماية من SQL Injection
+- حماية من XSS
+- حماية من CSRF
+- تحديد معدل الطلبات (Rate Limiting)
+- سجلات التدقيق (Audit Logs)
+
+## الترخيص | License
+
+MIT License - راجع ملف [LICENSE](./LICENSE) للتفاصيل.
+
+## المساهمة | Contributing
+
+نرحب بالمساهمات! يرجى قراءة إرشادات المساهمة قبل البدء.
+
+## الفريق | Team
+
+Medical Warehouse Development Team
+
+## المدة الزمنية | Timeline
+
+**مدة التنفيذ:** 4 أشهر
+
+## الاتصال | Contact
+
+للاستفسارات والدعم، يرجى التواصل مع فريق الدعم الفني.
+
+---
+
+**نسخة:** 1.0.0
+**آخر تحديث:** 2025-10-23

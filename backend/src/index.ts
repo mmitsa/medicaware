@@ -20,6 +20,7 @@ import notificationRoutes from './api/routes/notification.routes';
 import reportRoutes from './api/routes/report.routes';
 import supplierRoutes from './api/routes/supplier.routes';
 import categoryRoutes from './api/routes/category.routes';
+import financialRoutes from './api/routes/financial.routes';
 
 // Load environment variables
 dotenv.config();
@@ -94,6 +95,7 @@ app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/suppliers', supplierRoutes);
 app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/financial', financialRoutes);
 
 // 404 handler
 app.use((req, res) => {

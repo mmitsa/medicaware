@@ -11,6 +11,8 @@ import userRoutes from './api/routes/user.routes';
 import warehouseRoutes from './api/routes/warehouse.routes';
 import productRoutes from './api/routes/product.routes';
 import batchRoutes from './api/routes/batch.routes';
+import stockRoutes from './api/routes/stock.routes';
+import stockMovementRoutes from './api/routes/stock-movement.routes';
 
 // Load environment variables
 dotenv.config();
@@ -74,6 +76,8 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/warehouses', warehouseRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/batches', batchRoutes);
+app.use('/api/v1/stocks', stockRoutes);
+app.use('/api/v1/stock-movements', stockMovementRoutes);
 
 // 404 handler
 app.use((req, res) => {

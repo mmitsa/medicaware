@@ -17,6 +17,7 @@ import transferOrderRoutes from './api/routes/transfer-order.routes';
 import purchaseOrderRoutes from './api/routes/purchase-order.routes';
 import stockCountRoutes from './api/routes/stock-count.routes';
 import notificationRoutes from './api/routes/notification.routes';
+import reportRoutes from './api/routes/report.routes';
 
 // Load environment variables
 dotenv.config();
@@ -86,6 +87,7 @@ app.use('/api/v1/transfer-orders', transferOrderRoutes);
 app.use('/api/v1/purchase-orders', purchaseOrderRoutes);
 app.use('/api/v1/stock-counts', stockCountRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/reports', reportRoutes);
 
 // 404 handler
 app.use((req, res) => {
